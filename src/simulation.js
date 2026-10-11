@@ -33,7 +33,7 @@ function chaseDirection(s,e){
 }
 const mods=()=>Object.fromEntries(['power','haste','speed','regen','crit','leech','poison','chain','explode','dashwave','frost','pierce','blood','orbit','multishot','reach','heavy','skill','cooldown','armor','thorn','execute','gold','potion','renew','dodge','focus','barrier','elite'].map(k=>[k,0]));
 export function createRun(weapon='sword',seed=Date.now()>>>0,difficulty=0){
-  const s={version:1,seed,randomState:seed,weapon,difficulty,stage:0,roomSerial:0,nextId:1,time:0,status:'playing',player:{x:0,z:10,prevX:0,prevZ:10,vx:0,vz:0,angle:Math.PI,hp:120,maxHp:120,stamina:100,maxStamina:100,shield:0,potions:3,invuln:0,dash:0,dashX:0,dashZ:0,attackTimer:0,attackPose:0,heavyPose:false,skillCd:0,combo:0,comboTimer:0,orbitTimer:2},mods:mods(),perks:[],gold:0,kills:0,damageDealt:0,dodges:0,roomsCleared:0,enemies:[],projectiles:[],hazards:[],pickups:[],events:[],choices:[],offers:[],rewardLeft:0,cleared:false,eventDone:false,chestUsed:false};
+  const s={version:1,seed,randomState:seed,weapon,difficulty,stage:0,roomSerial:0,nextId:1,time:0,status:'playing',player:{x:0,z:10,prevX:0,prevZ:10,vx:0,vz:0,angle:Math.PI,hp:120,maxHp:120,stamina:100,maxStamina:100,shield:0,potions:3,invuln:0,dash:0,dashX:0,dashZ:0,attackTimer:0,attackPose:0,attackVariant:0,heavyPose:false,skillCd:0,combo:0,comboTimer:0,orbitTimer:2},mods:mods(),perks:[],gold:0,kills:0,damageDealt:0,dodges:0,roomsCleared:0,enemies:[],projectiles:[],hazards:[],pickups:[],events:[],choices:[],offers:[],rewardLeft:0,cleared:false,eventDone:false,chestUsed:false};
   enterRoom(s,{type:'battle',layout:0});return s;
 }
 function random(s){s.randomState=(s.randomState+0x6D2B79F5)>>>0;let t=s.randomState;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;}
@@ -98,14 +98,14 @@ export function action(s,name,aim){
   }
   if(p.dash>0||p.attackTimer>0)return false;
   if(name==='attack'||name==='heavy'){
-    const heavy=name==='heavy';if(heavy&&p.stamina<23)return false;if(heavy)p.stamina-=23;p.combo=p.comboTimer>0?(p.combo+1)%3:0;p.comboTimer=1.3;p.attackTimer=(heavy?w.interval*1.7:w.interval)/(1+s.mods.haste);p.attackPose=heavy?.5:.3;p.heavyPose=heavy;
+    const heavy=name==='heavy';if(heavy&&p.stamina<23)return false;if(heavy)p.stamina-=23;p.combo=p.comboTimer>0?(p.combo+1)%3:0;p.comboTimer=1.3;p.attackTimer=(heavy?w.interval*1.7:w.interval)/(1+s.mods.haste);p.attackPoseDuration=p.attackPose=Math.min(p.attackTimer,heavy?.62:s.weapon==='hammer'?.58:s.weapon==='bow'?.28:.36);p.attackVariant=heavy?4:p.combo+1;p.attackSerial=(p.attackSerial??0)+1;p.heavyPose=heavy;
     const damage=heavy?w.heavy:w.damage*(p.combo===2?1.35:1),range=w.range*(1+s.mods.reach);const kind=heavy?'heavy':'basic';
     if(s.weapon==='bow'){shoot(s,'player',p.x,p.z,p.angle,damage,{speed:25*(1+s.mods.reach*.8),pierce:heavy||!!s.mods.pierce,life:1.2,kind});if(s.mods.multishot)for(const a of [-.16,.16])shoot(s,'player',p.x,p.z,p.angle+a,damage*.65,{speed:25,life:1.2,kind});}
     else{attackCone(s,damage,heavy?range*1.18:range,heavy?1.5:1.08,heavy?kind:p.combo===2?'finisher':kind);emit(s,'slash',{x:p.x,z:p.z,angle:p.angle,radius:range,heavy,combo:p.combo});}
     emit(s,'attack',{weapon:s.weapon,heavy});return true;
   }
   if(name==='skill'){
-    const cost=30*(1-Math.min(.6,s.mods.focus));if(p.skillCd>0||p.stamina<cost)return false;p.stamina-=cost;p.skillCd=8*(1-Math.min(.6,s.mods.cooldown));p.attackTimer=.3;p.attackPose=.6;p.heavyPose=true;
+    const cost=30*(1-Math.min(.6,s.mods.focus));if(p.skillCd>0||p.stamina<cost)return false;p.stamina-=cost;p.skillCd=8*(1-Math.min(.6,s.mods.cooldown));p.attackTimer=.3;p.attackPoseDuration=p.attackPose=.3;p.attackVariant=5;p.attackSerial=(p.attackSerial??0)+1;p.heavyPose=true;
     if(s.weapon==='bow'){for(let i=-3;i<=3;i++)shoot(s,'player',p.x,p.z,p.angle+i*.17,48,{speed:23,pierce:true,life:1.3,color:'gold',kind:'skill'});}
     else{const point=s.weapon==='hammer'?{x:p.x+Math.sin(p.angle)*3,z:p.z+Math.cos(p.angle)*3}:p;const radius=s.weapon==='hammer'?5:5.5;for(const e of s.enemies)if(e.hp>0&&dist(point,e)<radius+e.radius)hurtEnemy(s,e,s.weapon==='hammer'?115:80,'skill');emit(s,'blast',{x:point.x,z:point.z,radius,color:'cyan'});}
     emit(s,'skill');return true;
