@@ -1,0 +1,18 @@
+{
+  "title": "裂隙猎场",
+  "renderer": "Three.js WebGLRenderer",
+  "representation": "authoritative discrete gameplay state with fixed-step kinematic locomotion",
+  "worldUnits": "approximate metres",
+  "walkableBounds": {"x": [-15, 15], "z": [-14, 14]},
+  "timeStepHz": 120,
+  "collision": {"playerRadius": 0.48, "obstacles": "circles shared with room mesh placement", "movement": "subdivided movement and sliding resolution", "projectiles": "segment sweep", "physicsScope": "grounded kinematic controller; no general rigid-body simulation"},
+  "camera": {"projection": "perspective", "fov": 46, "controls": "damped follow, wheel zoom, middle-button yaw"},
+  "lightOwners": ["world directional warm key", "world hemisphere fill", "world cool rim", "four lantern-owned local point lights"],
+  "optimization": ["instanced floor, walls, rubble, particles", "reused geometry and materials", "render interpolation", "flow fields cached twice per second", "fixed particle and floating-label budgets", "disposed room resources", "hidden-tab suspension", "static modal rendering"],
+  "assets": "custom procedural geometry and synthesized audio",
+  "roomLayouts": 14,
+  "weapons": 3,
+  "normalEnemyRoles": 6,
+  "bosses": 2,
+  "runes": 30
+}
